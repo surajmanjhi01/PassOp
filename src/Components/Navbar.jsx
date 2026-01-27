@@ -4,7 +4,7 @@ import githubIcon from "../assets/github.svg";
 const Navbar = () => {
 
     const openGithub = () => {
-        window.open("https://github.com/surajmanjhi01", "_blank", "noopener,noreferrer");
+        window.open("https://github.com/surajmanjhi01", "_blank",);
     };
 
     return (
