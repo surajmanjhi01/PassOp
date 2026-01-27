@@ -1,13 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
 import eyeIcon from "../assets/eye.png";
 import eyeCrossedIcon from "../assets/eyecross.png";
 import copyIcon from "../assets/copy.png";
 import EditIcon from "../assets/edit.png";
 import DeleteIcon from "../assets/delete.png";
-
-// ❌ REMOVE THIS (cors is backend only)
-// const cors = require('cors');
 
 const Manager = () => {
   const eyeRef = useRef(null);
@@ -21,21 +17,16 @@ const Manager = () => {
 
   const [passwordArray, setPasswordArray] = useState([]);
 
-  // Fetch passwords from backend
   const getpasswords = async () => {
     let req = await fetch("http://localhost:3000/");
     let passwords = await req.json();
-    if (passwords) {
-      console.log(passwords);
-      setPasswordArray(passwords);
-    }
+    if (passwords) setPasswordArray(passwords);
   };
 
   useEffect(() => {
     getpasswords();
   }, []);
 
-  // Show / Hide Password
   const showPassword = () => {
     if (passRef.current.type === "password") {
       passRef.current.type = "text";
@@ -46,10 +37,9 @@ const Manager = () => {
     }
   };
 
-  // Save Password (MongoDB API)
   const savePassword = async () => {
     if (!form.site || !form.username || !form.password) {
-      alert("Please fill all fields");
+      alert("Fill all fields");
       return;
     }
 
@@ -63,60 +53,53 @@ const Manager = () => {
     getpasswords();
   };
 
-  // Delete Password
   const deletePassword = async (id) => {
-    let confirm = window.confirm("Are you sure you want to delete?");
-    if (!confirm) return;
-
-    await fetch(`http://localhost:3000/${id}`, {
-      method: "DELETE"
-    });
-
+    if (!window.confirm("Delete?")) return;
+    await fetch(`http://localhost:3000/${id}`, { method: "DELETE" });
     getpasswords();
   };
 
-  // Edit Password
   const editPassword = (id) => {
     const item = passwordArray.find((p) => p._id === id);
     setForm(item);
   };
 
-  // Handle Input Change
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center pt-20 bg-gray-100">
+    <div className="min-h-screen flex flex-col items-center pt-10 px-4 bg-gray-100">
 
-      <h1 className="text-4xl font-bold text-center">
+      {/* Title */}
+      <h1 className="text-3xl sm:text-4xl font-bold text-center">
         <span className="text-green-500">&lt;</span>
-        <span className="text-black">Pass</span>
+        Pass
         <span className="text-green-700">OP/&gt;</span>
       </h1>
+      <p className="text-gray-600 text-sm sm:text-lg mb-6 text-center">
+        Your own Password Manager
+      </p>
 
-      <p className="text-gray-600 text-lg mb-8">Your own Password Manager</p>
-
-      <div className="flex flex-col gap-6 w-[600px] bg-white p-6 rounded-xl shadow-md">
+      {/* Form Box */}
+      <div className="flex flex-col gap-5 w-full max-w-xl bg-white p-5 sm:p-6 rounded-xl shadow-md">
 
         <input
           name="site"
           value={form.site}
           onChange={handleChange}
-          className="w-full border border-green-300 rounded-full px-5 py-2"
-          type="text"
-          placeholder="Enter website URL"
+          className="w-full border rounded-full px-4 py-2"
+          placeholder="Website URL"
         />
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
 
           <input
             name="username"
             value={form.username}
             onChange={handleChange}
-            className="w-full border border-green-300 rounded-full px-5 py-2"
-            type="text"
-            placeholder="Enter Username"
+            className="w-full border rounded-full px-4 py-2"
+            placeholder="Username"
           />
 
           <div className="relative w-full">
@@ -125,40 +108,40 @@ const Manager = () => {
               name="password"
               value={form.password}
               onChange={handleChange}
-              className="w-full border border-green-300 rounded-full px-5 py-2"
+              className="w-full border rounded-full px-4 py-2"
               type="password"
-              placeholder="Enter Password"
+              placeholder="Password"
             />
-
             <span className="absolute right-3 top-2 cursor-pointer" onClick={showPassword}>
-              <img ref={eyeRef} className="w-6 h-6" src={eyeIcon} alt="toggle" />
+              <img ref={eyeRef} className="w-5 h-5" src={eyeIcon} alt="" />
             </span>
           </div>
+
         </div>
 
         <button
           onClick={savePassword}
-          className="mx-auto bg-green-500 text-white px-6 py-2 rounded-full"
+          className="mx-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full"
         >
           Save Password
         </button>
-
       </div>
 
-      <div className="mt-10 w-[700px] bg-white p-6 rounded-xl shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Saved Passwords</h2>
+      {/* Table Section */}
+      <div className="mt-8 w-full max-w-3xl bg-white p-4 sm:p-6 rounded-xl shadow-md overflow-x-auto">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4">Saved Passwords</h2>
 
         {passwordArray.length === 0 ? (
-          <p>No passwords saved yet.</p>
+          <p>No passwords saved.</p>
         ) : (
-          <table className="table-auto w-full border">
+          <table className="w-full text-sm sm:text-base border">
             <thead className="bg-green-600 text-white">
               <tr>
-                <th>Website</th>
-                <th>Username</th>
-                <th>Password</th>
-                <th>Edit</th>
-                <th>Delete</th>
+                <th className="p-2">Website</th>
+                <th className="p-2">Username</th>
+                <th className="p-2">Password</th>
+                <th className="p-2">Edit</th>
+                <th className="p-2">Delete</th>
               </tr>
             </thead>
 
@@ -166,32 +149,32 @@ const Manager = () => {
               {passwordArray.map((item) => (
                 <tr key={item._id} className="text-center border">
 
-                  <td className="flex items-center gap-2 justify-center">
-                    <a href={item.site} target="_blank" className="text-blue-600">
+                  <td className="flex flex-wrap items-center justify-center gap-2 p-2">
+                    <a href={item.site} target="_blank" className="text-blue-600 break-all">
                       {item.site}
                     </a>
                     <img
                       src={copyIcon}
-                      className="w-5 cursor-pointer"
+                      className="w-4 cursor-pointer"
                       onClick={() => navigator.clipboard.writeText(item.site)}
                     />
                   </td>
 
-                  <td>{item.username}</td>
-                  <td>{item.password}</td>
+                  <td className="p-2 break-all">{item.username}</td>
+                  <td className="p-2 break-all">{item.password}</td>
 
-                  <td>
+                  <td className="p-2">
                     <img
                       src={EditIcon}
-                      className="w-5 cursor-pointer"
+                      className="w-4 cursor-pointer mx-auto"
                       onClick={() => editPassword(item._id)}
                     />
                   </td>
 
-                  <td>
+                  <td className="p-2">
                     <img
                       src={DeleteIcon}
-                      className="w-5 cursor-pointer"
+                      className="w-4 cursor-pointer mx-auto"
                       onClick={() => deletePassword(item._id)}
                     />
                   </td>

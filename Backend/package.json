@@ -1,10 +1,13 @@
 {
+  "homepage": "https://surajmanjhi01.github.io/YOUR_REPO_NAME",
   "name": "backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +19,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "mongodb": "^7.0.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
