@@ -1,32 +1,25 @@
-import React from 'react'
-import githubIcon from '../assets/github.svg'
+import React from "react";
+import githubIcon from "../assets/github.svg";
+
 const Navbar = () => {
-    return (
-        <nav className='bg-slate-800 text-white '>
-            <div className="mycontainer flex justify-between items-center px-4 py-5 h-14">
 
-                <div className="logo font-bold text-white text-2xl">
-                    <span className='text-green-500'> &lt;</span>
-                   
-                    <span>Pass</span><span className='text-green-500'>OP/&gt;</span>
-                  
-                    
-                    </div>
-                {/* <ul>
-                    <li className='flex gap-4 '>
-                        <a className='hover:font-bold' href='/'>Home</a>
-                        <a className='hover:font-bold' href='#'>About</a>
-                        <a className='hover:font-bold' href='#'>Contact</a>
-                    </li>
-                </ul> */}
-                <button className='text-white bg-green-700 my-5 mx-2 rounded-full flex  justify-between items-center ring-white ring-1'> 
-                    <img className='invert  w-10 p-1' src={githubIcon} alt="github logo" />
-                    <span className='font-bold px-2'>GitHub</span>
-                    
-                </button>
-            </div>
-        </nav>
-    )
-}
+  const openGithub = () => {
+    window.open("https://github.com/surajmanjhi01", "_blank", "noopener,noreferrer");
+  };
 
-export default Navbar
+  return (
+    <header className="bg-black px-4 py-2 flex justify-between items-center">
+      <h1 className="text-white text-xl font-bold">PassOP</h1>
+
+      <button
+        onClick={openGithub}
+        className="text-white bg-green-700 px-3 py-1 rounded-full flex items-center gap-2 ring-1 ring-white hover:bg-green-600 transition"
+      >
+        <img className="invert w-6" src={githubIcon} alt="GitHub" />
+        <span className="font-bold">GitHub</span>
+      </button>
+    </header>
+  );
+};
+
+export default Navbar;
