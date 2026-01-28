@@ -15,10 +15,11 @@ const Manager = () => {
     password: ""
   });
 
+  const server_url = import.meta.env.VITE_SERVER_URL;
   const [passwordArray, setPasswordArray] = useState([]);
 
   const getpasswords = async () => {
-    let req = await fetch("http://localhost:3000/");
+    let req = await fetch(server_url);
     let passwords = await req.json();
     if (passwords) setPasswordArray(passwords);
   };
@@ -43,7 +44,7 @@ const Manager = () => {
       return;
     }
 
-    await fetch("http://localhost:3000/", {
+    await fetch(server_url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form)
@@ -55,7 +56,7 @@ const Manager = () => {
 
   const deletePassword = async (id) => {
     if (!window.confirm("Delete?")) return;
-    await fetch(`http://localhost:3000/${id}`, { method: "DELETE" });
+    await fetch(`${server_url}${id}`, { method: "DELETE" });
     getpasswords();
   };
 
