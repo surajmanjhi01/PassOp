@@ -19,7 +19,7 @@ const Manager = () => {
   const [passwordArray, setPasswordArray] = useState([]);
 
   const getpasswords = async () => {
-    let req = await fetch(server_url);
+    let req = await fetch(`${server_url}/get-passwords`);
     let passwords = await req.json();
     if (passwords) setPasswordArray(passwords);
   };
@@ -44,7 +44,7 @@ const Manager = () => {
       return;
     }
 
-    await fetch(server_url, {
+    await fetch(`${server_url}/save-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form)
@@ -56,7 +56,7 @@ const Manager = () => {
 
   const deletePassword = async (id) => {
     if (!window.confirm("Delete?")) return;
-    await fetch(`${server_url}${id}`, { method: "DELETE" });
+    await fetch(`${server_url}/delete-password/${id}`, { method: "DELETE" });
     getpasswords();
   };
 

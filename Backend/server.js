@@ -34,7 +34,7 @@ app.get('/health', (req, res) => {
 });
 
 //get all the passwords
-app.get('/', async (req, res) => {
+app.get('/get-passwords', async (req, res) => {
   try {
     const passwords = await Password.find({});
     res.json(passwords);
@@ -45,7 +45,7 @@ app.get('/', async (req, res) => {
 })
 
 //save the passwords
-app.post('/', async (req, res) => {
+app.post('/save-password', async (req, res) => {
   try {
     const password = new Password(req.body);
     await password.save();
@@ -57,7 +57,7 @@ app.post('/', async (req, res) => {
 })
 
 //Delete the passwords by id
-app.delete("/:id", async (req, res) => {
+app.delete("/delete-password/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const result = await Password.deleteOne({ _id: id });
