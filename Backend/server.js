@@ -1,58 +1,73 @@
-const express = require('express')
-require('dotenv').config()
-const { MongoClient } = require('mongodb');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-// or as an es module:
-// import { MongoClient } from 'mongodb'
+import express from 'express'
+import dotenv from 'dotenv'
+import mongoose from 'mongoose'
+import bodyParser from 'body-parser'
+import cors from 'cors'
+
+dotenv.config()
 
 // Connection URL
-const url = 'mongodb://localhost:27017';
-const client = new MongoClient(url);
+const url = process.env.MONGO_URL;
 
-// Database Name
-const dbName = 'passop';
-// console.log(process.env.MONGO_URI)
+// Connect to MongoDB using Mongoose
+mongoose.connect(url)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// Define Password Schema
+const passwordSchema = new mongoose.Schema({
+  site: String,
+  username: String,
+  password: String
+}, { timestamps: true });
+
+const Password = mongoose.model('Password', passwordSchema);
+
 const app = express()
 const port = 3000
 app.use(bodyParser.json());
 app.use(cors());
 
- client.connect();
- //get all the passwords
+
+app.get('/health', (req, res) => {
+  res.send('Server is healthy');
+});
+
+//get all the passwords
 app.get('/', async (req, res) => {
-    const db = client.db(dbName);
-    const collection = db.collection('passwords');
-    const findResult = await collection.find({}).toArray();
-    res.json(findResult);
+  try {
+    const passwords = await Password.find({});
+    res.json(passwords);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Failed to fetch passwords" });
+  }
 })
+
 //save the passwords
 app.post('/', async (req, res) => {
-    const password=req.body;
-    const db = client.db(dbName);
-    const collection = db.collection('passwords');
-    const findResult = await collection.insertOne(password);
-    res.send({sucess:true,message:"Password saved successfully"});
+  try {
+    const password = new Password(req.body);
+    await password.save();
+    res.send({ success: true, message: "Password saved successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Failed to save password" });
+  }
 })
+
 //Delete the passwords by id
-const { ObjectId } = require("mongodb");
-
 app.delete("/:id", async (req, res) => {
-    try {
-        const id = req.params.id;
-        const db = client.db(dbName);
-        const collection = db.collection("passwords");
-
-        const result = await collection.deleteOne({ _id: new ObjectId(id) });
-
-        res.json({ success: true, deletedCount: result.deletedCount });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, error: "Delete failed" });
-    }
+  try {
+    const id = req.params.id;
+    const result = await Password.deleteOne({ _id: id });
+    res.json({ success: true, deletedCount: result.deletedCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Delete failed" });
+  }
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening on port http://localhost:${port}`)
-
+  console.log(`Example app listening on port http://localhost:${port}`)
 })

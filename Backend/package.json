@@ -12,13 +12,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "mongodb": "^7.0.0"
+    "mongoose": "^8.22.0"
   },
   "devDependencies": {
     "gh-pages": "^6.3.0"
