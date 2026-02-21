@@ -30,7 +30,7 @@ app.use(cors());
 
 
 app.get('/health', (req, res) => {
-  res.send('Server is  ok healthy');
+  res.send('Server is   healthy');
 });
 
 //get all the passwords
