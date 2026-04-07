@@ -5,28 +5,54 @@ import copyIcon from "../assets/copy.png";
 import EditIcon from "../assets/edit.png";
 import DeleteIcon from "../assets/delete.png";
 
-const Manager = () => {
+const Manager = ({ token, user, onLogout }) => {
   const eyeRef = useRef(null);
   const passRef = useRef(null);
+  const siteRef = useRef(null);
+  const usernameRef = useRef(null);
 
   const [form, setForm] = useState({
+    _id: "",
     site: "",
     username: "",
     password: ""
   });
 
-  const server_url = import.meta.env.VITE_SERVER_URL;
+  const rawServerUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
+  const server_url = rawServerUrl.replace(/\/$/, "");
   const [passwordArray, setPasswordArray] = useState([]);
+  const authHeaders = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  };
+
+  const handleUnauthorized = () => {
+    alert("Session expired. Please login again.");
+    onLogout();
+  };
 
   const getpasswords = async () => {
-    let req = await fetch(`${server_url}/get-passwords`);
-    let passwords = await req.json();
-    if (passwords) setPasswordArray(passwords);
+    try {
+      let req = await fetch(`${server_url}/get-passwords`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (req.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+      if (!req.ok) throw new Error("Failed to fetch passwords");
+      let passwords = await req.json();
+      if (Array.isArray(passwords)) setPasswordArray(passwords);
+    } catch (error) {
+      console.error("Could not load passwords:", error);
+    }
   };
 
   useEffect(() => {
-    getpasswords();
-  }, []);
+    if (token) {
+      getpasswords();
+    }
+  }, [token]);
 
   const showPassword = () => {
     if (passRef.current.type === "password") {
@@ -39,24 +65,53 @@ const Manager = () => {
   };
 
   const savePassword = async () => {
-    if (!form.site || !form.username || !form.password) {
+    // Browser autofill can bypass React state updates, so read current input values too.
+    const payload = {
+      site: (form.site || siteRef.current?.value || "").trim(),
+      username: (form.username || usernameRef.current?.value || "").trim(),
+      password: (form.password || passRef.current?.value || "").trim()
+    };
+
+    if (!payload.site || !payload.username || !payload.password) {
       alert("Fill all fields");
       return;
     }
 
-    await fetch(`${server_url}/save-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
+    const method = form._id ? "PUT" : "POST";
+    const endpoint = form._id ? `/update-password/${form._id}` : "/save-password";
+
+    const response = await fetch(`${server_url}${endpoint}`, {
+      method,
+      headers: authHeaders,
+      body: JSON.stringify(payload)
     });
 
-    setForm({ site: "", username: "", password: "" });
+    if (response.status === 401) {
+      handleUnauthorized();
+      return;
+    }
+
+    if (!response.ok) {
+      alert("Could not save password. Check backend server and database connection.");
+      return;
+    }
+
+    setForm({ _id: "", site: "", username: "", password: "" });
     getpasswords();
   };
 
   const deletePassword = async (id) => {
     if (!window.confirm("Delete?")) return;
-    await fetch(`${server_url}/delete-password/${id}`, { method: "DELETE" });
+    const response = await fetch(`${server_url}/delete-password/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (response.status === 401) {
+      handleUnauthorized();
+      return;
+    }
+
     getpasswords();
   };
 
@@ -70,22 +125,30 @@ const Manager = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center pt-10 px-4 bg-gray-100">
+    <div className="space-y-6">
+      <section className="rounded-3xl border border-lime-200 bg-white/95 p-5 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.4)] sm:p-7">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+              Password Vault
+            </h1>
+            <p className="text-sm text-slate-600 sm:text-base">
+              Signed in as <span className="font-semibold text-lime-700">{user?.email}</span>
+            </p>
+          </div>
 
-      {/* Title */}
-      <h1 className="text-3xl sm:text-4xl font-bold text-center">
-        <span className="text-green-500">&lt;</span>
-        Pass
-        <span className="text-green-700">OP/&gt;</span>
-      </h1>
-      <p className="text-gray-600 text-sm sm:text-lg mb-6 text-center">
-        Your own Password Manager
-      </p>
+          <button
+            onClick={onLogout}
+            className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+          >
+            Logout
+          </button>
+        </div>
 
-      {/* Form Box */}
-      <div className="flex flex-col gap-5 w-full max-w-xl bg-white p-5 sm:p-6 rounded-xl shadow-md">
+        <div className="mt-6 flex flex-col gap-5">
 
         <input
+          ref={siteRef}
           name="site"
           value={form.site}
           onChange={handleChange}
@@ -96,6 +159,7 @@ const Manager = () => {
         <div className="flex flex-col sm:flex-row gap-4">
 
           <input
+            ref={usernameRef}
             name="username"
             value={form.username}
             onChange={handleChange}
@@ -122,15 +186,16 @@ const Manager = () => {
 
         <button
           onClick={savePassword}
-          className="mx-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full"
+          className="mx-auto rounded-xl bg-lime-600 px-8 py-3 font-semibold text-white transition hover:bg-lime-700"
         >
-          Save Password
+          {form._id ? "Update Password" : "Save Password"}
         </button>
       </div>
+      </section>
 
       {/* Table Section */}
-      <div className="mt-8 w-full max-w-3xl bg-white p-4 sm:p-6 rounded-xl shadow-md overflow-x-auto">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4">Saved Passwords</h2>
+      <div className="overflow-x-auto rounded-3xl border border-lime-200 bg-white/95 p-4 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)] sm:p-6">
+        <h2 className="mb-4 text-xl font-bold sm:text-2xl">Your Saved Passwords</h2>
 
         {passwordArray.length === 0 ? (
           <p>No passwords saved.</p>
@@ -162,7 +227,7 @@ const Manager = () => {
                   </td>
 
                   <td className="p-2 break-all">{item.username}</td>
-                  <td className="p-2 break-all">{item.password}</td>
+                  <td className="p-2 break-all font-mono">{item.password}</td>
 
                   <td className="p-2">
                     <img
